@@ -1,6 +1,6 @@
 import type { BusinessSettings } from "@/lib/business-settings";
 import type { Receipt, ReceiptItem } from "@/lib/receipt-store";
-import { formatCurrency, formatDateTime, numberToWords } from "@/lib/receipt-utils";
+git remote add origin https://github.com/YOUR_USERNAME/ai-receipt-generator.gimport { formatCurrency, formatDateTime, numberToWords } from "@/lib/receipt-utils";
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 
