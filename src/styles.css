@@ -1,0 +1,389 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * ReceiptAI Design System
+ * Premium, minimal, AI-inspired. Inspired by Stripe / Linear / Notion / Apple.
+ * All colors in oklch. Tokens mapped in @theme inline.
+ */
+
+@theme inline {
+  --font-sans: "Inter", "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-glow: var(--primary-glow);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --shadow-soft: 0 1px 2px 0 oklch(0.2 0.02 260 / 0.04), 0 1px 3px 0 oklch(0.2 0.02 260 / 0.06);
+  --shadow-elegant: 0 10px 30px -10px oklch(0.55 0.2 265 / 0.15);
+  --shadow-glow: 0 0 40px oklch(0.65 0.22 265 / 0.25);
+}
+
+:root {
+  --radius: 0.75rem;
+
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.18 0.02 265);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.02 265);
+
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.02 265);
+
+  /* Blue primary, indigo glow */
+  --primary: oklch(0.55 0.22 265);
+  --primary-foreground: oklch(0.99 0 0);
+  --primary-glow: oklch(0.68 0.2 275);
+
+  --secondary: oklch(0.97 0.005 260);
+  --secondary-foreground: oklch(0.25 0.03 265);
+
+  --muted: oklch(0.97 0.005 260);
+  --muted-foreground: oklch(0.5 0.02 260);
+
+  --accent: oklch(0.96 0.02 265);
+  --accent-foreground: oklch(0.3 0.1 265);
+
+  --success: oklch(0.68 0.17 155);
+  --success-foreground: oklch(0.99 0 0);
+
+  --warning: oklch(0.74 0.17 65);
+  --warning-foreground: oklch(0.2 0.02 60);
+
+  --destructive: oklch(0.6 0.24 27);
+  --destructive-foreground: oklch(0.99 0 0);
+
+  --border: oklch(0.93 0.008 260);
+  --input: oklch(0.93 0.008 260);
+  --ring: oklch(0.55 0.22 265);
+
+  --sidebar: oklch(0.985 0.003 260);
+  --sidebar-foreground: oklch(0.25 0.02 265);
+  --sidebar-primary: oklch(0.55 0.22 265);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.95 0.01 265);
+  --sidebar-accent-foreground: oklch(0.3 0.1 265);
+  --sidebar-border: oklch(0.92 0.008 260);
+  --sidebar-ring: oklch(0.55 0.22 265);
+}
+
+.dark {
+  --background: oklch(0.15 0.015 265);
+  --foreground: oklch(0.98 0.003 260);
+
+  --card: oklch(0.19 0.02 265);
+  --card-foreground: oklch(0.98 0.003 260);
+
+  --popover: oklch(0.19 0.02 265);
+  --popover-foreground: oklch(0.98 0.003 260);
+
+  --primary: oklch(0.68 0.2 265);
+  --primary-foreground: oklch(0.15 0.015 265);
+  --primary-glow: oklch(0.75 0.18 275);
+
+  --secondary: oklch(0.25 0.02 265);
+  --secondary-foreground: oklch(0.98 0.003 260);
+
+  --muted: oklch(0.25 0.02 265);
+  --muted-foreground: oklch(0.68 0.02 260);
+
+  --accent: oklch(0.28 0.05 265);
+  --accent-foreground: oklch(0.9 0.05 265);
+
+  --success: oklch(0.72 0.17 155);
+  --success-foreground: oklch(0.15 0.015 265);
+
+  --warning: oklch(0.78 0.17 65);
+  --warning-foreground: oklch(0.15 0.015 265);
+
+  --destructive: oklch(0.65 0.22 27);
+  --destructive-foreground: oklch(0.99 0 0);
+
+  --border: oklch(1 0 0 / 8%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.68 0.2 265);
+
+  --sidebar: oklch(0.17 0.018 265);
+  --sidebar-foreground: oklch(0.9 0.01 260);
+  --sidebar-primary: oklch(0.68 0.2 265);
+  --sidebar-primary-foreground: oklch(0.15 0.015 265);
+  --sidebar-accent: oklch(0.25 0.03 265);
+  --sidebar-accent-foreground: oklch(0.9 0.05 265);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: oklch(0.68 0.2 265);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html,
+  body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+  }
+}
+
+@utility gradient-primary {
+  background-image: linear-gradient(135deg, var(--primary), var(--primary-glow));
+}
+
+@utility text-gradient {
+  background-image: linear-gradient(135deg, var(--primary), var(--primary-glow));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility shadow-elegant {
+  box-shadow: var(--shadow-elegant);
+}
+
+@utility shadow-soft {
+  box-shadow: var(--shadow-soft);
+}
+
+/* ===== PRINT OPTIMIZED ===== */
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm 10mm;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Reset scroll for print */
+  html, body, #root {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Hide generic shell containers */
+  [class*="AppSidebar"],
+  [class*="TopNav"],
+  [class*="MobileBottomNav"],
+  [class*="sidebar"],
+  aside,
+  nav,
+  header,
+  footer,
+  .print\:hidden,
+  [role="navigation"],
+  [role="banner"],
+  button,
+  form,
+  .toaster,
+  [data-sonner-toaster],
+  [class*="sonner"],
+  [class*="Drawer"],
+  [data-state="open"] {
+    display: none !important;
+  }
+
+  /* Find the main print area regardless of nesting */
+  #receipt-print-wrap,
+  #receipt-print-wrap * {
+    display: block !important;
+    visibility: visible !important;
+    position: static !important;
+    float: none !important;
+  }
+
+  /* flex children with receipt wrap: show only that child, hide others */
+  body > #root,
+  #root > * {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #fff !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  #receipt-print-wrap {
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+  }
+
+  #receipt-print-wrap > div {
+    max-height: none !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  .receipt-paper {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    min-width: 100% !important;
+  }
+
+  .receipt-paper > div {
+    padding: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    min-width: 100% !important;
+  }
+
+  /* Ensure all inline elements inside receipt still render inline */
+  #receipt-print-wrap span,
+  #receipt-print-wrap a,
+  #receipt-print-wrap strong,
+  #receipt-print-wrap b,
+  #receipt-print-wrap em,
+  #receipt-print-wrap i {
+    display: inline !important;
+  }
+
+  /* Tables keep their layout */
+  #receipt-print-wrap table {
+    display: table !important;
+    width: 100% !important;
+    table-layout: auto !important;
+  }
+  #receipt-print-wrap thead { display: table-header-group !important; }
+  #receipt-print-wrap tbody { display: table-row-group !important; }
+  #receipt-print-wrap tr    { display: table-row !important; }
+  #receipt-print-wrap td,
+  #receipt-print-wrap th    { display: table-cell !important; }
+
+  /* Grid/flex containers inside receipt keep behavior */
+  #receipt-print-wrap [style*="display: grid"],
+  #receipt-print-wrap [class*="grid"] {
+    display: grid !important;
+  }
+  #receipt-print-wrap [style*="display: flex"],
+  #receipt-print-wrap [class*="flex"] {
+    display: flex !important;
+  }
+
+  /* Print ink: force dark text and light backgrounds */
+  .receipt-paper *,
+  .receipt-paper {
+    color: #0f172a !important;
+  }
+
+  .receipt-paper .text-slate-400,
+  .receipt-paper .text-slate-500,
+  .receipt-paper .text-slate-600,
+  .receipt-paper .text-muted-foreground {
+    color: #475569 !important;
+  }
+
+  .receipt-paper .gradient-primary,
+  .receipt-paper [class*="gradient-primary"] {
+    background: #e2e8f0 !important;
+    background-image: none !important;
+    color: #0f172a !important;
+    border: 1px solid #cbd5e1 !important;
+  }
+
+  .receipt-paper .gradient-primary *,
+  .receipt-paper .text-primary-foreground,
+  .receipt-paper [class*="text-primary-foreground"] {
+    color: #0f172a !important;
+  }
+
+  .receipt-paper .bg-slate-50,
+  .receipt-paper [class*="bg-muted"] {
+    background: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+  }
+
+  .receipt-paper .bg-primary\/10,
+  .receipt-paper .bg-primary\/5,
+  .receipt-paper .bg-primary\/15 {
+    background: #f1f5f9 !important;
+  }
+
+  /* SVG / QR — ensure rendering */
+  #receipt-print-wrap svg {
+    display: block !important;
+    overflow: visible !important;
+  }
+
+  /* Page break helpers */
+  .receipt-paper {
+    page-break-inside: auto;
+    orphans: 3;
+    widows: 3;
+  }
+  .receipt-paper > div > * {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+}
