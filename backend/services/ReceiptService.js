@@ -1,9 +1,6 @@
 import Receipt from "../models/Receipt.js";
 import { AppError } from "../middleware/errorHandler.js";
-import {
-  generateReceiptId,
-  computeNextReceiptNumber,
-} from "../utils/receipt-number.js";
+import { generateReceiptId, computeNextReceiptNumber } from "../utils/receipt-number.js";
 import { computeReceiptTotals, round2 } from "../utils/gst-calc.js";
 import { numberToWords } from "../utils/amount-to-words.js";
 import { buildQRPayload } from "../utils/qr.js";
@@ -55,8 +52,7 @@ export const ReceiptService = {
     const currency = validBody.currency || "INR";
     const receiptId = validBody.receiptId || generateReceiptId();
     const receiptNumber =
-      validBody.receiptNumber ||
-      (await ReceiptNumberService.generateNext(receiptDate));
+      validBody.receiptNumber || (await ReceiptNumberService.generateNext(receiptDate));
 
     const qrPayload = buildQRPayload({
       receiptId,
@@ -185,10 +181,7 @@ export const ReceiptService = {
   },
 
   async getById(id) {
-    const doc = await Receipt.findById(id)
-      .populate("businessId")
-      .lean()
-      .exec();
+    const doc = await Receipt.findById(id).populate("businessId").lean().exec();
     if (!doc) throw new AppError("Receipt not found", 404, "RECEIPT_NOT_FOUND");
     return doc;
   },

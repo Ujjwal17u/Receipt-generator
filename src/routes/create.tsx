@@ -48,7 +48,8 @@ export const Route = createFileRoute("/create")({
       { title: "Create Receipt · ReceiptAI" },
       {
         name: "description",
-        content: "Compose a new professional receipt with itemized details, live preview and instant export.",
+        content:
+          "Compose a new professional receipt with itemized details, live preview and instant export.",
       },
       { property: "og:title", content: "Create Receipt · ReceiptAI" },
       {
@@ -62,22 +63,14 @@ export const Route = createFileRoute("/create")({
 
 const customerSchema = z.object({
   customerName: z.string().trim().min(1, "Customer name is required").max(120),
-  customerPhone: z
-    .string()
-    .trim()
-    .max(30)
-    .optional()
-    .or(z.literal("")),
+  customerPhone: z.string().trim().max(30).optional().or(z.literal("")),
   customerEmail: z
     .string()
     .trim()
     .max(255)
     .optional()
     .or(z.literal(""))
-    .refine(
-      (v) => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
-      "Invalid email address",
-    ),
+    .refine((v) => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), "Invalid email address"),
   customerAddress: z.string().max(300).optional().or(z.literal("")),
 });
 
@@ -110,6 +103,10 @@ function CreateReceipt() {
   const [loadingReceiptNo, setLoadingReceiptNo] = useState(true);
   const [receiptNumber, setReceiptNumber] = useState<string>("");
   const receiptDate = useMemo(() => new Date(), []);
+  const [exportPreviewData, setExportPreviewData] =
+    useState<Parameters<typeof ReceiptPreview>[0] | null>(null);
+  const exportKeyRef = useRef(0);
+  const exportingRef = useRef(false);
 
   const {
     register,
@@ -210,7 +207,8 @@ function CreateReceipt() {
     const validItems = items.filter(
       (it) => it.name.trim().length > 0 && Number(it.quantity) > 0 && Number(it.unitPrice) > 0,
     );
-    if (validItems.length === 0) errs.push("Add at least one item with name, qty > 0 and price > 0.");
+    if (validItems.length === 0)
+      errs.push("Add at least one item with name, qty > 0 and price > 0.");
     for (const it of items) {
       if (it.name.trim().length === 0 && (Number(it.quantity) > 0 || Number(it.unitPrice) > 0)) {
         errs.push("One or more items are missing a name.");
@@ -223,7 +221,9 @@ function CreateReceipt() {
   // --- Actions ---
   const buildPayload = () => {
     const cleanItems = items
-      .filter((it) => it.name.trim().length > 0 && Number(it.quantity) > 0 && Number(it.unitPrice) > 0)
+      .filter(
+        (it) => it.name.trim().length > 0 && Number(it.quantity) > 0 && Number(it.unitPrice) > 0,
+      )
       .map((it) => ({
         ...it,
         name: it.name.trim(),
@@ -284,30 +284,170 @@ function CreateReceipt() {
   };
 
   const handlePrint = () => {
-    window.print();
+    void exportReceipt("print");
   };
 
   const handleDownload = async () => {
-    const payload = buildPayload();
-    const previewData = hydrateReceiptForPreview(
-      {
-        ...payload,
-        receiptNumber,
-        dateIso: receiptDate.toISOString(),
-      },
-      business,
-    );
-    const safeTitle = `Receipt_${receiptNumber.replace(/[^A-Za-z0-9\-]/g, "")}`;
-    const title = document.title;
-    document.title = safeTitle;
-    setTimeout(() => {
-      document.title = title;
-    }, 100);
-    toast.message("Tip: Choose 'Save as PDF' in the print dialog", {
-      description: `File name will be: ${safeTitle}.pdf`,
-    });
-    window.print();
+    await exportReceipt("download");
   };
+
+  async function exportReceipt(mode: "print" | "download") {
+    if (exportingRef.current) return;
+    exportingRef.current = true;
+    try {
+      const payload = buildPayload();
+      const hydrated = hydrateReceiptForPreview(
+        {
+          ...payload,
+          receiptNumber,
+          dateIso: receiptDate.toISOString(),
+        },
+        business,
+      );
+      exportKeyRef.current += 1;
+      const safeTitle = `Receipt_${receiptNumber.replace(/[^A-Za-z0-9\-]/g, "")}`;
+      if (mode === "download") {
+        toast.message("Tip: Choose 'Save as PDF' in the print dialog", {
+          description: `File name will be: ${safeTitle}.pdf`,
+        });
+      } else {
+        toast.message("Opening print…", { description: safeTitle });
+      }
+      setExportPreviewData(hydrated);
+      await waitForExportRender();
+      const wrap = document.getElementById("receipt-export-wrap");
+      const sourceEl = wrap
+        ? (wrap.querySelector<HTMLDivElement>(".receipt-paper") ??
+            wrap.querySelector<HTMLDivElement>("#receipt-print-area"))
+        : document.getElementById("receipt-print-area");
+      if (!sourceEl) {
+        setExportPreviewData(null);
+        window.print();
+        return;
+      }
+      const styleSheets: string[] = [];
+      for (const ss of Array.from(document.styleSheets)) {
+        try {
+          const rules = Array.from((ss as CSSStyleSheet).cssRules || [])
+            .map((r) => r.cssText)
+            .join("\n");
+          if (rules) styleSheets.push(`<style>${rules}</style>`);
+        } catch {
+          const href = (ss as CSSStyleSheet).href;
+          if (href) styleSheets.push(`<link rel="stylesheet" href="${href}">`);
+        }
+      }
+      const receiptOuterHTML = sourceEl.outerHTML;
+      const paperStyles = `
+        @page { size: A4; margin: 10mm 8mm; }
+        html, body {
+          margin: 0; padding: 0; background: #fff; color: #0f172a;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Arial, sans-serif;
+          -webkit-print-color-adjust: exact; print-color-adjust: exact;
+        }
+        #receipt-print-area, .receipt-paper {
+          width: 100%; max-width: 100%; margin: 0 auto; background: #fff;
+          color: #0f172a; page-break-inside: auto; orphans: 4; widows: 4;
+        }
+        .receipt-paper > div { padding: 0 !important; }
+        .receipt-paper > div > * { page-break-inside: avoid; break-inside: avoid; }
+        .receipt-paper .gradient-primary,
+        .receipt-paper [class*="gradient-primary"] {
+          background-image: linear-gradient(135deg, oklch(0.55 0.22 265), oklch(0.68 0.2 275)) !important;
+          background-color: oklch(0.55 0.22 265) !important;
+          border: 0 !important;
+        }
+        .receipt-paper .gradient-primary *,
+        .receipt-paper .text-primary-foreground,
+        .receipt-paper [class*="text-primary-foreground"] {
+          color: oklch(0.99 0 0) !important;
+        }
+        .receipt-paper .text-slate-400, .receipt-paper .text-slate-500,
+        .receipt-paper .text-slate-600, .receipt-paper .text-muted-foreground { color: #475569 !important; }
+        .receipt-paper .bg-slate-50, .receipt-paper [class*="bg-muted"] {
+          background: #f8fafc !important; border-color: #cbd5e1 !important;
+        }
+        .receipt-paper .bg-primary\\/10, .receipt-paper .bg-primary\\/5,
+        .receipt-paper .bg-primary\\/15 { background: #f1f5f9 !important; }
+        .receipt-paper table { width: 100% !important; border-collapse: collapse; }
+        .receipt-paper img, .receipt-paper svg { display: block; max-width: 100%; }
+      `;
+
+      const printWin = window.open("", "_blank", "width=900,height=1200");
+      if (!printWin) {
+        toast.warning("Popup blocked — falling back to browser print", {
+          description: "Allow popups for a cleaner PDF export.",
+        });
+        setExportPreviewData(null);
+        window.print();
+        return;
+      }
+      printWin.document.open();
+      printWin.document
+        .write(`<!doctype html><html><head><meta charset="utf-8"><title>${safeTitle}</title>
+      ${styleSheets.join("\n")}
+      <style>${paperStyles}</style>
+      </head><body>${receiptOuterHTML}<script>
+        (function() {
+          function allImagesLoaded() {
+            var imgs = document.querySelectorAll('img');
+            var pending = imgs.length;
+            if (pending === 0) return Promise.resolve();
+            return new Promise(function(resolve) {
+              imgs.forEach(function(img) {
+                if (img.complete && img.naturalWidth !== 0) { pending--; if (pending===0) resolve(); return; }
+                img.addEventListener('load', function() { pending--; if (pending===0) resolve(); });
+                img.addEventListener('error', function() { pending--; if (pending===0) resolve(); });
+              });
+            });
+          }
+          function kickOff() {
+            allImagesLoaded().then(function() {
+              setTimeout(function() {
+                window.focus();
+                window.print();
+              }, 300);
+            });
+          }
+          if (document.readyState === 'complete') kickOff();
+          else window.addEventListener('load', kickOff);
+        })();
+      <\/script>
+      </body></html>`);
+      printWin.document.close();
+      setTimeout(() => {
+        setExportPreviewData(null);
+        exportingRef.current = false;
+      }, 1200);
+    } catch (e) {
+      console.error(e);
+      exportingRef.current = false;
+      setExportPreviewData(null);
+      toast.error("Couldn't open the print window. Please try again.");
+    }
+  }
+
+  function waitForExportRender() {
+    return new Promise<void>((resolve) => {
+      let tries = 0;
+      const tryNext = () => {
+        tries += 1;
+        const wrap = document.getElementById("receipt-export-wrap");
+        if (wrap && wrap.querySelector(".receipt-paper")) {
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => resolve());
+          });
+          return;
+        }
+        if (tries > 40) {
+          resolve();
+          return;
+        }
+        setTimeout(tryNext, 30);
+      };
+      requestAnimationFrame(tryNext);
+    });
+  }
 
   const previewPayload = useMemo(() => {
     const p = buildPayload();
@@ -336,63 +476,57 @@ function CreateReceipt() {
   ]);
 
   return (
-    <div className="space-y-6 pb-36 lg:pb-10">
-      <PageHeader
-        eyebrow="New Receipt"
-        title="Create receipt"
-        description="Fill in the details on the left. The preview on the right updates live."
-        actions={
-          <>
-            <Button asChild variant="outline" className="rounded-full">
-              <Link to="/">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to dashboard
-              </Link>
-            </Button>
-            <div className="hidden sm:flex items-center gap-2">
-              <Drawer open={previewOpen} onOpenChange={setPreviewOpen}>
-                <Button
-                  variant="outline"
-                  className="rounded-full lg:hidden"
-                  onClick={() => setPreviewOpen(true)}
-                >
-                  <Eye className="mr-2 h-4 w-4" />
-                  Preview
+    <div className="space-y-6 pb-36 lg:pb-10 print:space-y-0 print:pb-0">
+      <div className="print:hidden">
+        <PageHeader
+          eyebrow="New Receipt"
+          title="Create receipt"
+          description="Fill in the details on the left. The preview on the right updates live."
+          actions={
+            <>
+              <Button asChild variant="outline" className="rounded-full">
+                <Link to="/">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to dashboard
+                </Link>
+              </Button>
+              <div className="hidden sm:flex items-center gap-2">
+                <Drawer open={previewOpen} onOpenChange={setPreviewOpen}>
+                  <Button
+                    variant="outline"
+                    className="rounded-full lg:hidden"
+                    onClick={() => setPreviewOpen(true)}
+                  >
+                    <Eye className="mr-2 h-4 w-4" />
+                    Preview
+                  </Button>
+                </Drawer>
+                <Button variant="outline" className="rounded-full" onClick={handlePrint}>
+                  <Printer className="mr-2 h-4 w-4" />
+                  Print
                 </Button>
-              </Drawer>
-              <Button
-                variant="outline"
-                className="rounded-full"
-                onClick={handlePrint}
-              >
-                <Printer className="mr-2 h-4 w-4" />
-                Print
-              </Button>
-              <Button
-                variant="outline"
-                className="rounded-full"
-                onClick={handleDownload}
-              >
-                <Download className="mr-2 h-4 w-4" />
-                Download PDF
-              </Button>
-              <Button
-                className="gradient-primary rounded-full text-primary-foreground shadow-elegant"
-                onClick={handleSubmit(handleSave)}
-                disabled={saving}
-              >
-                <Save className="mr-2 h-4 w-4" />
-                {saving ? "Saving…" : "Save Receipt"}
-              </Button>
-            </div>
-          </>
-        }
-      />
+                <Button variant="outline" className="rounded-full" onClick={handleDownload}>
+                  <Download className="mr-2 h-4 w-4" />
+                  Download PDF
+                </Button>
+                <Button
+                  className="gradient-primary rounded-full text-primary-foreground shadow-elegant"
+                  onClick={handleSubmit(handleSave)}
+                  disabled={saving}
+                >
+                  <Save className="mr-2 h-4 w-4" />
+                  {saving ? "Saving…" : "Save Receipt"}
+                </Button>
+              </div>
+            </>
+          }
+        />
+      </div>
 
       {/* Layout grid */}
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-5">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-5 print:grid-cols-1 print:gap-0">
         {/* LEFT: Form */}
-        <div className="xl:col-span-3 space-y-6">
+        <div className="xl:col-span-3 space-y-6 print:hidden">
           {/* Receipt meta */}
           <Card className="shadow-soft print:hidden">
             <CardHeader>
@@ -413,7 +547,10 @@ function CreateReceipt() {
                 <Label className="text-sm font-medium">Receipt number</Label>
                 <div className="flex items-center rounded-lg border border-border bg-muted/40 px-3 py-2">
                   <span className="font-mono text-sm font-semibold">{receiptNumber}</span>
-                  <Badge variant="outline" className="ml-auto rounded-full text-[10px] uppercase tracking-wider">
+                  <Badge
+                    variant="outline"
+                    className="ml-auto rounded-full text-[10px] uppercase tracking-wider"
+                  >
                     Auto
                   </Badge>
                 </div>
@@ -532,8 +669,7 @@ function CreateReceipt() {
                 </div>
                 <Separator />
                 {items.map((it, idx) => {
-                  const amt =
-                    (Number(it.quantity) || 0) * (Number(it.unitPrice) || 0);
+                  const amt = (Number(it.quantity) || 0) * (Number(it.unitPrice) || 0);
                   return (
                     <div key={it.id}>
                       <div className="grid grid-cols-[40px_minmax(0,1fr)_80px_110px_110px_44px] items-start gap-2 px-3 py-3">
@@ -554,9 +690,7 @@ function CreateReceipt() {
                             placeholder="Description (optional)"
                             className="rounded-lg text-sm bg-muted/30"
                             value={it.description}
-                            onChange={(e) =>
-                              updateItem(it.id, { description: e.target.value })
-                            }
+                            onChange={(e) => updateItem(it.id, { description: e.target.value })}
                           />
                         </div>
                         <div className="pt-0.5">
@@ -614,13 +748,9 @@ function CreateReceipt() {
               {/* Mobile cards */}
               <div className="sm:hidden space-y-3">
                 {items.map((it, idx) => {
-                  const amt =
-                    (Number(it.quantity) || 0) * (Number(it.unitPrice) || 0);
+                  const amt = (Number(it.quantity) || 0) * (Number(it.unitPrice) || 0);
                   return (
-                    <div
-                      key={it.id}
-                      className="rounded-xl border border-border p-3 space-y-2.5"
-                    >
+                    <div key={it.id} className="rounded-xl border border-border p-3 space-y-2.5">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2 min-w-0">
                           <Badge variant="outline" className="rounded-full shrink-0">
@@ -653,9 +783,7 @@ function CreateReceipt() {
                         placeholder="Description (optional)"
                         className="rounded-lg text-sm bg-muted/30"
                         value={it.description}
-                        onChange={(e) =>
-                          updateItem(it.id, { description: e.target.value })
-                        }
+                        onChange={(e) => updateItem(it.id, { description: e.target.value })}
                       />
                       <div className="grid grid-cols-2 gap-2">
                         <div className="space-y-1">
@@ -694,11 +822,7 @@ function CreateReceipt() {
                     </div>
                   );
                 })}
-                <Button
-                  variant="outline"
-                  className="w-full rounded-full"
-                  onClick={addItem}
-                >
+                <Button variant="outline" className="w-full rounded-full" onClick={addItem}>
                   <Plus className="mr-2 h-4 w-4" />
                   Add another item
                 </Button>
@@ -757,9 +881,7 @@ function CreateReceipt() {
                 </div>
                 <div>
                   <CardTitle className="text-base">Taxes, discounts &amp; notes</CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    Configure charges before saving.
-                  </p>
+                  <p className="text-sm text-muted-foreground">Configure charges before saving.</p>
                 </div>
               </div>
             </CardHeader>
@@ -862,21 +984,19 @@ function CreateReceipt() {
         </div>
 
         {/* RIGHT: Preview (desktop) */}
-        <div className="xl:col-span-2 print:col-span-5 print:block">
+        <div className="xl:col-span-2 print:col-span-5 print:block print:w-full">
           <div className="hidden xl:flex items-center justify-between mb-3 print:hidden">
             <div>
               <h2 className="text-base font-semibold tracking-tight">Live preview</h2>
-              <p className="text-sm text-muted-foreground">
-                Updates as you type.
-              </p>
+              <p className="text-sm text-muted-foreground">Updates as you type.</p>
             </div>
           </div>
           <div
             ref={previewRef}
-            className="xl:sticky xl:top-20 rounded-2xl shadow-elegant border border-border overflow-hidden bg-slate-50 print:shadow-none print:border-none print:bg-white print:rounded-none"
+            className="xl:sticky xl:top-20 rounded-2xl shadow-elegant border border-border overflow-hidden bg-slate-50 print:shadow-none print:border-none print:bg-white print:rounded-none print:sticky print:static print:top-auto print:overflow-visible print:max-h-none"
             id="receipt-print-wrap"
           >
-            <div className="max-h-[calc(100vh-7rem)] xl:max-h-[calc(100vh-6rem)] overflow-auto xl:overscroll-contain print:max-h-none print:overflow-visible">
+            <div className="max-h-[calc(100vh-7rem)] xl:max-h-[calc(100vh-6rem)] overflow-auto xl:overscroll-contain print:max-h-none print:overflow-visible print:h-auto">
               <ReceiptPreview {...previewPayload} />
             </div>
           </div>
@@ -910,32 +1030,63 @@ function CreateReceipt() {
       </div>
 
       {/* Mobile Preview Drawer */}
-      <Drawer open={previewOpen} onOpenChange={setPreviewOpen}>
-        <DrawerContent className="h-[92vh]">
-          <DrawerHeader className="text-left px-4 pt-4 pb-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <DrawerTitle>Receipt preview</DrawerTitle>
-                <DrawerDescription>{receiptNumber} · Tap close to return</DrawerDescription>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" className="rounded-full" onClick={handlePrint}>
-                  <Printer className="mr-2 h-3.5 w-3.5" />
-                  Print
-                </Button>
-                <DrawerClose asChild>
-                  <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
-                    <X className="h-4 w-4" />
+      <div className="print:hidden">
+        <Drawer open={previewOpen} onOpenChange={setPreviewOpen}>
+          <DrawerContent className="h-[92vh]">
+            <DrawerHeader className="text-left px-4 pt-4 pb-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <DrawerTitle>Receipt preview</DrawerTitle>
+                  <DrawerDescription>{receiptNumber} · Tap close to return</DrawerDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-full"
+                    onClick={handlePrint}
+                  >
+                    <Printer className="mr-2 h-3.5 w-3.5" />
+                    Print
                   </Button>
-                </DrawerClose>
+                  <DrawerClose asChild>
+                    <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </DrawerClose>
+                </div>
               </div>
+            </DrawerHeader>
+            <div className="overflow-auto px-3 pb-6">
+              <ReceiptPreview {...previewPayload} />
             </div>
-          </DrawerHeader>
-          <div className="overflow-auto px-3 pb-6">
-            <ReceiptPreview {...previewPayload} />
-          </div>
-        </DrawerContent>
-      </Drawer>
+          </DrawerContent>
+        </Drawer>
+      </div>
+
+      {/* Offscreen snapshot render for export — guarantees latest payload matches live preview exactly */}
+      {exportPreviewData ? (
+        <div
+          aria-hidden
+          id="receipt-export-wrap"
+          style={{
+            position: "fixed",
+            left: "-99999px",
+            top: "0px",
+            width: "210mm",
+            minHeight: "297mm",
+            background: "#ffffff",
+            zIndex: -1,
+            visibility: "visible",
+            display: "block",
+          }}
+        >
+          <ReceiptPreview
+            key={`export-snap-${exportKeyRef.current}`}
+            {...exportPreviewData}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

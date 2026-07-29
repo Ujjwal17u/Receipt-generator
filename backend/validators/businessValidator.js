@@ -23,10 +23,7 @@ export const BusinessCreateSchema = z.object({
   email: z.string().email("Invalid email").max(255).optional().or(z.literal("")),
   website: z.string().trim().max(255).optional().or(z.literal("")),
   gstNumber: z.string().trim().max(20).optional().or(z.literal("")),
-  currency: z
-    .enum(["INR", "USD", "EUR", "GBP", "AED", "SAR"])
-    .default("INR")
-    .optional(),
+  currency: z.enum(["INR", "USD", "EUR", "GBP", "AED", "SAR"]).default("INR").optional(),
   address: AddressSchema.optional(),
 });
 

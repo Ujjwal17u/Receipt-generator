@@ -164,7 +164,6 @@ ReceiptSchema.pre("save", function (next) {
   next();
 });
 
-export const Receipt =
-  mongoose.models.Receipt || mongoose.model("Receipt", ReceiptSchema);
+export const Receipt = mongoose.models.Receipt || mongoose.model("Receipt", ReceiptSchema);
 
 export default Receipt;

@@ -9,8 +9,8 @@ export const DatabaseService = {
       connected,
       readyState: mongoose.connection.readyState,
       dbName: config.mongodb.dbName,
-      uriConfigured: Boolean(config.mongodb.uri) &&
-        !config.mongodb.uri.includes("username:password"),
+      uriConfigured:
+        Boolean(config.mongodb.uri) && !config.mongodb.uri.includes("username:password"),
       environment: config.nodeEnv,
     };
   },

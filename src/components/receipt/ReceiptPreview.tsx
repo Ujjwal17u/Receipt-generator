@@ -1,6 +1,6 @@
 import type { BusinessSettings } from "@/lib/business-settings";
 import type { Receipt, ReceiptItem } from "@/lib/receipt-store";
-git remote add origin https://github.com/YOUR_USERNAME/ai-receipt-generator.gimport { formatCurrency, formatDateTime, numberToWords } from "@/lib/receipt-utils";
+import { formatCurrency, formatDateTime, numberToWords } from "@/lib/receipt-utils";
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 
@@ -63,8 +63,7 @@ function QRCodeImage({ value, size = 96 }: { value: string; size?: number }) {
         style={{
           width: size,
           height: size,
-          background:
-            "repeating-conic-gradient(#cbd5e1 0% 25%, #ffffff 0% 50%) 50% / 16px 16px",
+          background: "repeating-conic-gradient(#cbd5e1 0% 25%, #ffffff 0% 50%) 50% / 16px 16px",
           borderRadius: 4,
         }}
         aria-label="QR code loading"
@@ -121,7 +120,10 @@ export function ReceiptPreview(props: ReceiptPreviewProps) {
   const qrData = buildQRData({ ...props, id: id || receiptNumber });
 
   return (
-    <div className="receipt-paper w-full bg-white text-slate-900 print:text-black mx-auto" id="receipt-print-area">
+    <div
+      className="receipt-paper w-full bg-white text-slate-900 print:text-black mx-auto"
+      id="receipt-print-area"
+    >
       <div className="space-y-6 p-6 sm:p-10">
         {/* HEADER */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -139,7 +141,7 @@ export function ReceiptPreview(props: ReceiptPreviewProps) {
                 </span>
               </div>
             )}
-            <div>
+            <div className="flex-1 min-w-0">
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight leading-tight">
                 {business.companyName || "Your Company Name"}
               </h1>
@@ -168,9 +170,7 @@ export function ReceiptPreview(props: ReceiptPreviewProps) {
                 {receiptNumber}
               </p>
             </div>
-            <p className="text-xs sm:text-sm text-slate-600 mt-2">
-              {formatDateTime(receiptDate)}
-            </p>
+            <p className="text-xs sm:text-sm text-slate-600 mt-2">{formatDateTime(receiptDate)}</p>
           </div>
         </div>
 
@@ -183,19 +183,13 @@ export function ReceiptPreview(props: ReceiptPreviewProps) {
             <p className="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-1.5">
               Bill To
             </p>
-            <p className="font-semibold text-base">
-              {customerName || "Walk-in Customer"}
-            </p>
-            {customerPhone && (
-              <p className="text-sm text-slate-600 mt-0.5">{customerPhone}</p>
-            )}
+            <p className="font-semibold text-base">{customerName || "Walk-in Customer"}</p>
+            {customerPhone && <p className="text-sm text-slate-600 mt-0.5">{customerPhone}</p>}
             {customerEmail && (
               <p className="text-sm text-slate-600 mt-0.5 break-all">{customerEmail}</p>
             )}
             {customerAddress && (
-              <p className="text-sm text-slate-600 mt-0.5 whitespace-pre-line">
-                {customerAddress}
-              </p>
+              <p className="text-sm text-slate-600 mt-0.5 whitespace-pre-line">{customerAddress}</p>
             )}
           </div>
           <div className="rounded-xl bg-slate-50/60 p-4 border border-slate-200 print:border-slate-300 sm:justify-self-end sm:w-full sm:max-w-sm">
@@ -280,9 +274,7 @@ export function ReceiptPreview(props: ReceiptPreviewProps) {
           {/* Mobile */}
           <div className="sm:hidden divide-y divide-slate-200 print:divide-slate-300">
             {items.length === 0 ? (
-              <div className="px-4 py-8 text-center text-slate-400 text-sm">
-                No items added yet
-              </div>
+              <div className="px-4 py-8 text-center text-slate-400 text-sm">No items added yet</div>
             ) : (
               items.map((it, idx) => {
                 const amt = (Number(it.quantity) || 0) * (Number(it.unitPrice) || 0);
@@ -290,9 +282,7 @@ export function ReceiptPreview(props: ReceiptPreviewProps) {
                   <div key={it.id} className="p-3">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-start gap-2">
-                        <span className="text-xs text-slate-400 font-mono mt-0.5">
-                          {idx + 1}.
-                        </span>
+                        <span className="text-xs text-slate-400 font-mono mt-0.5">{idx + 1}.</span>
                         <div className="min-w-0">
                           <p className="font-medium text-sm leading-snug">
                             {it.name || <span className="text-slate-400">Untitled</span>}
@@ -308,7 +298,8 @@ export function ReceiptPreview(props: ReceiptPreviewProps) {
                     </div>
                     <div className="mt-2 flex justify-between text-xs text-slate-500">
                       <span>
-                        {Number(it.quantity) || 0} × {formatCurrency(Number(it.unitPrice) || 0, business.currency)}
+                        {Number(it.quantity) || 0} ×{" "}
+                        {formatCurrency(Number(it.unitPrice) || 0, business.currency)}
                       </span>
                     </div>
                   </div>
@@ -329,7 +320,11 @@ export function ReceiptPreview(props: ReceiptPreviewProps) {
               {grandTotal > 0
                 ? numberToWords(grandTotal, business.currency)
                 : "Zero " +
-                  (business.currency === "INR" ? "Rupees" : business.currency === "USD" ? "Dollars" : "Currency") +
+                  (business.currency === "INR"
+                    ? "Rupees"
+                    : business.currency === "USD"
+                      ? "Dollars"
+                      : "Currency") +
                   " Only"}
             </p>
             {notes && (
@@ -349,15 +344,11 @@ export function ReceiptPreview(props: ReceiptPreviewProps) {
             <div className="space-y-1.5 p-4 text-sm">
               <div className="flex items-center justify-between gap-3">
                 <span className="text-slate-600">Subtotal</span>
-                <span className="tabular-nums">
-                  {formatCurrency(subtotal, business.currency)}
-                </span>
+                <span className="tabular-nums">{formatCurrency(subtotal, business.currency)}</span>
               </div>
               {discountPercent > 0 && (
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-slate-600">
-                    Discount ({discountPercent}%)
-                  </span>
+                  <span className="text-slate-600">Discount ({discountPercent}%)</span>
                   <span className="tabular-nums text-success">
                     −{formatCurrency(discountAmount, business.currency)}
                   </span>

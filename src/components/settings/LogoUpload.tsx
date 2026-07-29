@@ -62,7 +62,11 @@ export function LogoUpload({ value, onChange }: LogoUploadProps) {
           <div className="flex w-full flex-col items-center gap-3 sm:flex-row sm:justify-between sm:text-left">
             <div className="flex items-center gap-3">
               <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl border border-border bg-background">
-                <img src={value} alt="Company logo" className="max-h-full max-w-full object-contain" />
+                <img
+                  src={value}
+                  alt="Company logo"
+                  className="max-h-full max-w-full object-contain"
+                />
               </div>
               <div>
                 <p className="text-sm font-medium">Logo uploaded</p>
@@ -103,7 +107,12 @@ export function LogoUpload({ value, onChange }: LogoUploadProps) {
               <p className="text-sm font-medium">Drop your logo here</p>
               <p className="text-xs text-muted-foreground">PNG, JPG, JPEG or SVG · Max 2MB</p>
             </div>
-            <Button type="button" variant="outline" size="sm" onClick={() => inputRef.current?.click()}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => inputRef.current?.click()}
+            >
               <Upload className="mr-2 h-4 w-4" />
               Upload logo
             </Button>

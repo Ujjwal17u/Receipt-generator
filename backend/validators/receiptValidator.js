@@ -43,10 +43,7 @@ export const ReceiptCreateSchema = z.object({
   discountPercentage: z.coerce.number().finite().gte(0).lte(100).optional(),
   shipping: z.coerce.number().finite().gte(0).optional().default(0),
   notes: z.string().trim().max(1000).optional().or(z.literal("")),
-  currency: z
-    .enum(["INR", "USD", "EUR", "GBP", "AED", "SAR"])
-    .default("INR")
-    .optional(),
+  currency: z.enum(["INR", "USD", "EUR", "GBP", "AED", "SAR"]).default("INR").optional(),
   businessId: z.string().trim().optional().or(z.literal("")),
 });
 

@@ -3,6 +3,10 @@
   "private": true,
   "sideEffects": false,
   "type": "module",
+  "engines": {
+    "node": ">=18.18.0",
+    "npm": ">=9"
+  },
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
@@ -12,7 +16,9 @@
     "format": "prettier --write .",
     "start": "node api/index.js",
     "dev:api": "node --watch api/index.js",
-    "seed": "node backend/lib/seed.js"
+    "seed": "node backend/lib/seed.js",
+    "check:backend": "node scripts/check-backend-syntax.mjs",
+    "vercel-build": "npm run build"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

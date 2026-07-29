@@ -1,10 +1,16 @@
 import type { BusinessSettings } from "./business-settings";
 import type { Receipt } from "./receipt-store";
 
-const DEFAULT_BASE =
-  (typeof import.meta !== "undefined" && (import.meta as any).env
-    ? (import.meta as any).env?.VITE_API_BASE_URL
-    : undefined) || "/api";
+type ValidCurrency = "INR" | "USD" | "EUR" | "GBP" | "AED" | "SAR";
+
+const VITE_ENV =
+  typeof import.meta !== "undefined" &&
+  import.meta &&
+  typeof (import.meta as { env?: Record<string, unknown> }).env === "object"
+    ? ((import.meta as { env: Record<string, unknown> }).env as Record<string, string | undefined>)
+    : undefined;
+
+const DEFAULT_BASE = (VITE_ENV?.VITE_API_BASE_URL as string | undefined) || "/api";
 
 export type ApiResponse<T = any> = {
   success: boolean;
@@ -120,6 +126,10 @@ export class ApiClient {
 
   // --- Mappers ---
   settingsToBusinessPayload(s: BusinessSettings) {
+    const CURRENCIES: ValidCurrency[] = ["INR", "USD", "EUR", "GBP", "AED", "SAR"];
+    const currency = CURRENCIES.includes(s.currency as ValidCurrency)
+      ? (s.currency as ValidCurrency)
+      : "INR";
     return {
       companyName: s.companyName || "",
       ownerName: s.ownerName || "",
@@ -128,7 +138,7 @@ export class ApiClient {
       email: s.email || "",
       website: s.website || "",
       gstNumber: s.gstNumber || "",
-      currency: (s.currency as any) || "INR",
+      currency,
       address: {
         addressLine: s.addressLine || "",
         city: s.city || "",

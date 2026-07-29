@@ -57,9 +57,7 @@ export async function connectDatabase() {
       state.promise = null;
       state.retries += 1;
       if (state.retries < MAX_RETRIES) {
-        console.warn(
-          `[DB] Retry ${state.retries}/${MAX_RETRIES} after error: ${err.message}`,
-        );
+        console.warn(`[DB] Retry ${state.retries}/${MAX_RETRIES} after error: ${err.message}`);
         await new Promise((r) => setTimeout(r, 500 * state.retries));
         return connectDatabase();
       }

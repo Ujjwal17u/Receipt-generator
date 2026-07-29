@@ -15,11 +15,7 @@ export class AppError extends Error {
 
 export function notFoundHandler(req, _res, next) {
   next(
-    new AppError(
-      `Cannot ${req.method} ${req.originalUrl} — endpoint not found`,
-      404,
-      "NOT_FOUND",
-    ),
+    new AppError(`Cannot ${req.method} ${req.originalUrl} — endpoint not found`, 404, "NOT_FOUND"),
   );
 }
 
@@ -57,7 +53,7 @@ export function errorHandlerMiddleware(err, req, res, _next) {
     }));
   }
 
-  if (err.code === 11000 || err.name === "MongoServerError" && err.code === 11000) {
+  if (err.code === 11000 || (err.name === "MongoServerError" && err.code === 11000)) {
     const key = Object.keys(err.keyValue || {})[0] || "value";
     const val = err.keyValue ? err.keyValue[key] : "";
     body.code = "DUPLICATE_KEY";

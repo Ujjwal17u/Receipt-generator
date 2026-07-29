@@ -67,12 +67,9 @@ BusinessSchema.index({ email: 1 }, { sparse: true });
 
 BusinessSchema.virtual("addressText").get(function () {
   const a = this.address || {};
-  return [a.addressLine, a.city, a.state, a.country, a.postalCode]
-    .filter(Boolean)
-    .join(", ");
+  return [a.addressLine, a.city, a.state, a.country, a.postalCode].filter(Boolean).join(", ");
 });
 
-export const Business =
-  mongoose.models.Business || mongoose.model("Business", BusinessSchema);
+export const Business = mongoose.models.Business || mongoose.model("Business", BusinessSchema);
 
 export default Business;

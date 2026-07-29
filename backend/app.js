@@ -2,16 +2,9 @@ import express from "express";
 import config from "./config/index.js";
 
 import loggerMiddleware from "./middleware/logger.js";
-import {
-  securityMiddleware,
-  rateLimitMiddleware,
-  sanitizeBody,
-} from "./middleware/security.js";
+import { securityMiddleware, rateLimitMiddleware, sanitizeBody } from "./middleware/security.js";
 import { corsMiddleware, preflightHandler } from "./middleware/cors.js";
-import {
-  errorHandlerMiddleware,
-  notFoundHandler,
-} from "./middleware/errorHandler.js";
+import { errorHandlerMiddleware, notFoundHandler } from "./middleware/errorHandler.js";
 
 import healthRoutes from "./routes/health.routes.js";
 import businessRoutes from "./routes/business.routes.js";

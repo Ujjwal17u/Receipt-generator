@@ -63,8 +63,7 @@ function Dashboard() {
   const greetingName = settings.companyName || "there";
   const totalReceipts = receipts.length;
   const todayCount = receipts.filter(
-    (r) =>
-      new Date(r.dateIso).toDateString() === new Date().toDateString(),
+    (r) => new Date(r.dateIso).toDateString() === new Date().toDateString(),
   ).length;
   const recentReceipts = receipts.slice(0, 10);
 
@@ -89,7 +88,11 @@ function Dashboard() {
               </p>
             </div>
           </div>
-          <Button asChild size="sm" className="gradient-primary rounded-full text-primary-foreground shrink-0">
+          <Button
+            asChild
+            size="sm"
+            className="gradient-primary rounded-full text-primary-foreground shrink-0"
+          >
             <Link to="/settings">Configure now</Link>
           </Button>
         </div>
@@ -107,7 +110,10 @@ function Dashboard() {
                 Settings
               </Link>
             </Button>
-            <Button asChild className="gradient-primary rounded-full text-primary-foreground shadow-elegant">
+            <Button
+              asChild
+              className="gradient-primary rounded-full text-primary-foreground shadow-elegant"
+            >
               <Link to="/create">
                 <FilePlus2 className="mr-2 h-4 w-4" />
                 Create Receipt
@@ -144,10 +150,7 @@ function Dashboard() {
           label="This Week"
           value={formatCurrency(
             receipts
-              .filter(
-                (r) =>
-                  Date.now() - new Date(r.dateIso).getTime() <= 7 * 24 * 60 * 60 * 1000,
-              )
+              .filter((r) => Date.now() - new Date(r.dateIso).getTime() <= 7 * 24 * 60 * 60 * 1000)
               .reduce((s, r) => s + r.grandTotal, 0),
             settings.currency,
           )}
@@ -189,7 +192,9 @@ function Dashboard() {
           <div>
             <h2 className="text-lg font-semibold tracking-tight">Recent receipts</h2>
             <p className="text-sm text-muted-foreground">
-              {totalReceipts > 0 ? `Showing ${recentReceipts.length} of ${totalReceipts} receipts` : "Your latest receipts will appear here."}
+              {totalReceipts > 0
+                ? `Showing ${recentReceipts.length} of ${totalReceipts} receipts`
+                : "Your latest receipts will appear here."}
             </p>
           </div>
           {totalReceipts > 0 && (
@@ -255,7 +260,10 @@ function Dashboard() {
                     )}
                   </div>
                   <div className="hidden sm:flex items-center gap-1 ml-2">
-                    <AlertDialog open={deleteId === r.id} onOpenChange={(o) => !o && setDeleteId(null)}>
+                    <AlertDialog
+                      open={deleteId === r.id}
+                      onOpenChange={(o) => !o && setDeleteId(null)}
+                    >
                       <AlertDialogTrigger asChild>
                         <Button
                           size="icon"
@@ -270,7 +278,8 @@ function Dashboard() {
                         <AlertDialogHeader>
                           <AlertDialogTitle>Delete receipt?</AlertDialogTitle>
                           <AlertDialogDescription>
-                            This will permanently remove {r.receiptNumber}. This action cannot be undone.
+                            This will permanently remove {r.receiptNumber}. This action cannot be
+                            undone.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -324,7 +333,9 @@ function HighlightCard({
         <div
           className={
             "flex h-11 w-11 items-center justify-center rounded-xl " +
-            (featured ? "gradient-primary text-primary-foreground" : "bg-accent text-accent-foreground")
+            (featured
+              ? "gradient-primary text-primary-foreground"
+              : "bg-accent text-accent-foreground")
           }
         >
           <Icon className="h-5 w-5" />

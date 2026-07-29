@@ -98,36 +98,52 @@ export function toBackendPayload(
 }
 
 function fromBackendDoc(doc: any): Receipt | null {
-  if (!doc) return null;
-  const customer = doc.customer || {};
-  const items = (Array.isArray(doc.items) ? doc.items : []).map((it: any, idx: number) => ({
-    id: `it_${idx}_${Math.random().toString(36).slice(2, 6)}`,
-    name: it.itemName || "",
-    description: it.description || "",
-    quantity: Number(it.quantity) || 0,
-    unitPrice: Number(it.unitPrice) || 0,
-  }));
-  const fin = doc.financials || {};
+  if (!doc || typeof doc !== "object") return null;
+  const customer = doc.customer && typeof doc.customer === "object" ? doc.customer : {};
+  const rawItems = Array.isArray(doc.items) ? doc.items : [];
+  const items = rawItems.map((it: any, idx: number) => {
+    const entry = it && typeof it === "object" ? it : {};
+    return {
+      id: `it_${idx}_${Math.random().toString(36).slice(2, 6)}`,
+      name: typeof entry.itemName === "string" ? entry.itemName : "",
+      description: typeof entry.description === "string" ? entry.description : "",
+      quantity: Number(entry.quantity) || 0,
+      unitPrice: Number(entry.unitPrice) || 0,
+    };
+  });
+  const fin = doc.financials && typeof doc.financials === "object" ? doc.financials : {};
+  const discountObj =
+    fin.discount && typeof fin.discount === "object" ? fin.discount : { percentage: 0, amount: 0 };
   return {
     id: `r_${doc._id || doc.receiptId || uid()}`,
-    receiptNumber: doc.receiptNumber || "",
-    createdAt: doc.createdAt || doc.receiptDate || new Date().toISOString(),
-    dateIso: doc.receiptDate || doc.createdAt || new Date().toISOString(),
-    customerName: customer.name || "",
-    customerPhone: customer.phone || "",
-    customerEmail: customer.email || "",
-    customerAddress: customer.address || "",
+    receiptNumber: typeof doc.receiptNumber === "string" ? doc.receiptNumber : "",
+    createdAt:
+      typeof doc.createdAt === "string"
+        ? doc.createdAt
+        : typeof doc.receiptDate === "string"
+          ? doc.receiptDate
+          : new Date().toISOString(),
+    dateIso:
+      typeof doc.receiptDate === "string"
+        ? doc.receiptDate
+        : typeof doc.createdAt === "string"
+          ? doc.createdAt
+          : new Date().toISOString(),
+    customerName: typeof customer.name === "string" ? customer.name : "",
+    customerPhone: typeof customer.phone === "string" ? customer.phone : "",
+    customerEmail: typeof customer.email === "string" ? customer.email : "",
+    customerAddress: typeof customer.address === "string" ? customer.address : "",
     items,
     gstEnabled: Boolean(fin.gstEnabled),
     gstRate: Number(fin.gstPercentage) || 0,
-    discountPercent: Number(fin.discount?.percentage) || 0,
+    discountPercent: Number(discountObj.percentage) || 0,
     shipping: Number(fin.shipping) || 0,
     subtotal: Number(fin.subtotal) || 0,
-    discountAmount: Number(fin.discount?.amount) || 0,
+    discountAmount: Number(discountObj.amount) || 0,
     taxableAmount: Number(fin.taxableAmount) || 0,
     gstAmount: Number(fin.gstAmount) || 0,
     grandTotal: Number(fin.grandTotal) || 0,
-    notes: doc.notes || "",
+    notes: typeof doc.notes === "string" ? doc.notes : "",
     _backendId: doc._id || doc.receiptId,
     syncedAt: new Date().toISOString(),
   };
@@ -143,7 +159,8 @@ export function ReceiptProvider({ children }: { children: ReactNode }) {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
-        setReceipts(JSON.parse(raw) as Receipt[]);
+        const parsed = JSON.parse(raw) as Receipt[];
+        if (Array.isArray(parsed)) setReceipts(parsed);
       }
     } catch {
       /* ignore */
@@ -164,21 +181,21 @@ export function ReceiptProvider({ children }: { children: ReactNode }) {
             const backendItems = (res.data as any).items
               .map((d: any) => fromBackendDoc(d))
               .filter(Boolean) as Receipt[];
-            if (backendItems.length > 0) {
+            setReceipts((prevLocalReceipts) => {
               const byNumber = new Map<string, Receipt>();
               for (const r of backendItems) byNumber.set(r.receiptNumber, r);
-              for (const r of receipts)
+              for (const r of prevLocalReceipts)
                 if (!byNumber.has(r.receiptNumber)) byNumber.set(r.receiptNumber, r);
               const merged = Array.from(byNumber.values()).sort(
                 (a, b) => +new Date(b.dateIso) - +new Date(a.dateIso),
               );
-              setReceipts(merged);
               try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
               } catch {
                 /* ignore */
               }
-            }
+              return merged;
+            });
             setSyncStatus("synced");
           } else {
             setSyncStatus("idle");
@@ -191,7 +208,6 @@ export function ReceiptProvider({ children }: { children: ReactNode }) {
     return () => {
       alive = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const persist = useCallback((next: Receipt[]) => {
@@ -254,9 +270,7 @@ export function ReceiptProvider({ children }: { children: ReactNode }) {
       try {
         receiptNumber = await getNextReceiptNumber();
       } catch {
-        const todayReceipts = receipts.filter((x) =>
-          isSameDay(new Date(x.dateIso), now),
-        );
+        const todayReceipts = receipts.filter((x) => isSameDay(new Date(x.dateIso), now));
         receiptNumber = generateReceiptNumber(todayReceipts.length, now);
       }
       const newReceipt: Receipt = {
@@ -298,12 +312,10 @@ export function ReceiptProvider({ children }: { children: ReactNode }) {
   const deleteReceipt = useCallback(
     async (id: string) => {
       const target = receipts.find(
-        (r) =>
-          r.id === id || r._backendId === id || r.receiptNumber === id,
+        (r) => r.id === id || r._backendId === id || r.receiptNumber === id,
       );
       const next = receipts.filter(
-        (r) =>
-          r.id !== id && r._backendId !== id && r.receiptNumber !== id,
+        (r) => r.id !== id && r._backendId !== id && r.receiptNumber !== id,
       );
       persist(next);
       if (apiEnabled && target?._backendId) {
@@ -325,9 +337,7 @@ export function ReceiptProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<Ctx>(() => {
     const today = new Date();
-    const todayList = receipts.filter((r) =>
-      isSameDay(new Date(r.dateIso), today),
-    );
+    const todayList = receipts.filter((r) => isSameDay(new Date(r.dateIso), today));
     const totalToday = todayList.reduce((s, r) => s + r.grandTotal, 0);
     const totalAllTime = receipts.reduce((s, r) => s + r.grandTotal, 0);
     return {
@@ -353,9 +363,7 @@ export function ReceiptProvider({ children }: { children: ReactNode }) {
     syncStatus,
   ]);
 
-  return (
-    <ReceiptContext.Provider value={value}>{children}</ReceiptContext.Provider>
-  );
+  return <ReceiptContext.Provider value={value}>{children}</ReceiptContext.Provider>;
 }
 
 export function useReceipts() {
@@ -375,12 +383,9 @@ export function computeReceiptTotals(
     (sum, it) => sum + (Number(it.quantity) || 0) * (Number(it.unitPrice) || 0),
     0,
   );
-  const discountAmount =
-    subtotal * ((Number(discountPercent) || 0) / 100);
+  const discountAmount = subtotal * ((Number(discountPercent) || 0) / 100);
   const taxableAmount = Math.max(0, subtotal - discountAmount);
-  const gstAmount = gstEnabled
-    ? taxableAmount * ((Number(gstRate) || 0) / 100)
-    : 0;
+  const gstAmount = gstEnabled ? taxableAmount * ((Number(gstRate) || 0) / 100) : 0;
   const grandTotal = taxableAmount + gstAmount + (Number(shipping) || 0);
   return { subtotal, discountAmount, taxableAmount, gstAmount, grandTotal };
 }

@@ -7,10 +7,7 @@ export const PDFService = {
     const qr = receipt.__qrDataURL || "";
     const b = business || receipt.businessId || {};
     const currency = receipt?.financials?.currency || "INR";
-    const totalFormatted = formatCurrency(
-      receipt?.financials?.grandTotal || 0,
-      currency,
-    );
+    const totalFormatted = formatCurrency(receipt?.financials?.grandTotal || 0, currency);
     const businessAddress = [
       b.address?.addressLine,
       b.address?.city,

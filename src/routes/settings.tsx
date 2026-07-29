@@ -4,15 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import {
-  ArrowLeft,
-  Save,
-  Building2,
-  Phone,
-  MapPin,
-  Sparkles,
-  RotateCcw,
-} from "lucide-react";
+import { ArrowLeft, Save, Building2, Phone, MapPin, Sparkles, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -60,10 +52,7 @@ const schema = z.object({
     .max(20)
     .optional()
     .or(z.literal(""))
-    .refine(
-      (val) => !val || /^[0-9A-Z]{6,20}$/.test(val),
-      "GST number format is invalid",
-    ),
+    .refine((val) => !val || /^[0-9A-Z]{6,20}$/.test(val), "GST number format is invalid"),
   phone: z
     .string()
     .trim()
@@ -75,10 +64,7 @@ const schema = z.object({
     .max(255)
     .optional()
     .or(z.literal(""))
-    .refine(
-      (val) => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
-      "Invalid email address",
-    ),
+    .refine((val) => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), "Invalid email address"),
   website: z
     .string()
     .trim()
@@ -131,9 +117,18 @@ function SettingsPage() {
   }, [hydrated]);
 
   const onSubmit = (values: FormValues) => {
-    saveSettings({ ...settings, ...values });
-    toast.success("Settings saved", { description: "Your business info will appear on every receipt." });
-    reset(values);
+    const normalized: FormValues = {
+      ...values,
+      gstNumber: values.gstNumber ? values.gstNumber.toUpperCase().replace(/\s+/g, "") : values.gstNumber,
+      website: values.website
+        ? values.website.trim().replace(/^\/+|\/+$/g, "")
+        : values.website,
+    };
+    saveSettings({ ...settings, ...normalized });
+    toast.success("Settings saved", {
+      description: "Your business info will appear on every receipt.",
+    });
+    reset(normalized);
   };
 
   const onReset = () => {
@@ -242,8 +237,17 @@ function SettingsPage() {
               </div>
             </CardHeader>
             <CardContent className="grid gap-5 sm:grid-cols-2">
-              <Field label="Address" required error={errors.addressLine?.message} className="sm:col-span-2">
-                <Textarea rows={2} placeholder="Street, area, landmark" {...register("addressLine")} />
+              <Field
+                label="Address"
+                required
+                error={errors.addressLine?.message}
+                className="sm:col-span-2"
+              >
+                <Textarea
+                  rows={2}
+                  placeholder="Street, area, landmark"
+                  {...register("addressLine")}
+                />
               </Field>
               <Field label="City" error={errors.city?.message}>
                 <Input placeholder="Bengaluru" {...register("city")} />

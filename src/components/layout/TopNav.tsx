@@ -26,9 +26,7 @@ export function TopNav() {
     <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-md">
       <SidebarTrigger className="hidden md:inline-flex" />
       <div className="hidden md:block min-w-0">
-        <span className="truncate text-sm font-medium">
-          {settings.companyName || "ReceiptAI"}
-        </span>
+        <span className="truncate text-sm font-medium">{settings.companyName || "ReceiptAI"}</span>
         <span className="mx-2 text-muted-foreground">·</span>
         <span className="text-sm text-muted-foreground">{today}</span>
       </div>

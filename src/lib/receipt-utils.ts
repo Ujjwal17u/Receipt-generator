@@ -21,18 +21,7 @@ const ones = [
   "Nineteen",
 ];
 
-const tens = [
-  "",
-  "",
-  "Twenty",
-  "Thirty",
-  "Forty",
-  "Fifty",
-  "Sixty",
-  "Seventy",
-  "Eighty",
-  "Ninety",
-];
+const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
 
 function convertHundreds(num: number): string {
   let result = "";
@@ -52,28 +41,28 @@ function convertHundreds(num: number): string {
 }
 
 export function numberToWords(num: number, currency = "INR"): string {
-  if (num === 0) return "Zero Rupees Only";
+  const safe = Number.isFinite(num) ? num : 0;
+  if (safe === 0) return "Zero Rupees Only";
 
-  const whole = Math.floor(num);
-  const paise = Math.round((num - whole) * 100);
+  const whole = Math.floor(Math.abs(safe));
+  const paise = Math.round((Math.abs(safe) - whole) * 100);
+  const sign = safe < 0 ? "Minus " : "";
 
   const currencyName =
     currency === "USD"
       ? "Dollars"
       : currency === "EUR"
-      ? "Euros"
-      : currency === "GBP"
-      ? "Pounds"
-      : currency === "AED"
-      ? "Dirhams"
-      : currency === "SAR"
-      ? "Riyals"
-      : "Rupees";
+        ? "Euros"
+        : currency === "GBP"
+          ? "Pounds"
+          : currency === "AED"
+            ? "Dirhams"
+            : currency === "SAR"
+              ? "Riyals"
+              : "Rupees";
 
   const fractionName =
-    currency === "USD" || currency === "EUR" || currency === "GBP"
-      ? "Cents"
-      : "Paise";
+    currency === "USD" || currency === "EUR" || currency === "GBP" ? "Cents" : "Paise";
 
   if (whole === 0 && paise > 0) {
     if (paise < 20) {
@@ -127,7 +116,7 @@ export function numberToWords(num: number, currency = "INR"): string {
   }
 
   words += " Only";
-  return words.trim();
+  return (sign + words).trim();
 }
 
 export function formatCurrency(amount: number, currency = "INR"): string {
@@ -140,28 +129,42 @@ export function formatCurrency(amount: number, currency = "INR"): string {
     SAR: "﷼",
   };
   const symbol = symbols[currency] || "₹";
-  return symbol + amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const safe = Number.isFinite(amount) ? amount : 0;
+  return (
+    symbol + safe.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  );
 }
 
-export function formatDate(date: Date): string {
-  return date.toLocaleDateString("en-IN", {
+function coerceDate(input: Date | string | number | null | undefined): Date {
+  if (input instanceof Date) return input;
+  if (input == null) return new Date(0);
+  const d = new Date(input);
+  return Number.isNaN(d.getTime()) ? new Date(0) : d;
+}
+
+export function formatDate(date: Date | string | number): string {
+  const d = coerceDate(date);
+  return d.toLocaleDateString("en-IN", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
   });
 }
 
-export function formatDateTime(date: Date): string {
-  return date.toLocaleDateString("en-IN", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  }) +
+export function formatDateTime(date: Date | string | number): string {
+  const d = coerceDate(date);
+  return (
+    d.toLocaleDateString("en-IN", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    }) +
     " · " +
-    date.toLocaleTimeString("en-IN", {
+    d.toLocaleTimeString("en-IN", {
       hour: "2-digit",
       minute: "2-digit",
-    });
+    })
+  );
 }
 
 export function generateReceiptNumber(todayCount: number, date = new Date()): string {

@@ -42,7 +42,7 @@ export function sanitizeBody() {
           if (v.length > 2_000_000) {
             req.body[key] = v.slice(0, 2_000_000);
           }
-          if (key === "$where" || key.startsWith("$") && !key.startsWith("data:")) {
+          if (key === "$where" || (key.startsWith("$") && !key.startsWith("data:"))) {
             delete req.body[key];
           }
         }
