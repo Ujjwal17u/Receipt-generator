@@ -269,11 +269,14 @@ function CreateReceipt() {
         });
       } else {
         toast.success("Receipt saved", {
-          description: `${saved.receiptNumber} has been added to your dashboard.`,
+          description: `Opening ${saved.receiptNumber}…`,
         });
       }
       setTimeout(() => {
-        router.navigate({ to: "/" });
+        router.navigate({
+          to: "/receipts/$receiptId",
+          params: { receiptId: saved.receiptNumber },
+        });
       }, 350);
     } catch (e) {
       console.error(e);

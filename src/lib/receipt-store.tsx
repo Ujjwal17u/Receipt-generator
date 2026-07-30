@@ -57,6 +57,7 @@ interface Ctx {
   deleteReceipt: (id: string) => Promise<void>;
   getNextReceiptNumber: () => Promise<string>;
   refreshFromApi: () => Promise<void>;
+  getReceipt: (idOrNumber: string) => Receipt | undefined;
   totalToday: number;
   totalAllTime: number;
   hydrated: boolean;
@@ -340,12 +341,17 @@ export function ReceiptProvider({ children }: { children: ReactNode }) {
     const todayList = receipts.filter((r) => isSameDay(new Date(r.dateIso), today));
     const totalToday = todayList.reduce((s, r) => s + r.grandTotal, 0);
     const totalAllTime = receipts.reduce((s, r) => s + r.grandTotal, 0);
+    const getReceipt = (idOrNumber: string) =>
+      receipts.find(
+        (r) => r.id === idOrNumber || r.receiptNumber === idOrNumber || r._backendId === idOrNumber,
+      );
     return {
       receipts,
       addReceipt,
       deleteReceipt,
       getNextReceiptNumber,
       refreshFromApi,
+      getReceipt,
       totalToday,
       totalAllTime,
       hydrated,

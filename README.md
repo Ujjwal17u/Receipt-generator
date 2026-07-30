@@ -1,18 +1,10 @@
-# Welcome to your Lovable project
+# ReceiptAI — Premium AI Receipt Generator
 
-This project was built with [Lovable](https://lovable.dev).
-
-## Build with Lovable
-
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+A professional, polished receipt generator with live preview, QR codes, itemized details, GST support, PDF export, and offline-first persistence.
 
 ## Development
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
 
 ```sh
 git clone <this-repository-url>
@@ -21,9 +13,10 @@ npm i
 npm run dev
 ```
 
-## Built with
+## Stack
 
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
+- TanStack Start (SSR + file-based routing)
+- TypeScript 5
+- React 19
+- Tailwind CSS v4
+- Express 4 + Mongoose 8 (optional backend API)

@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import {
   FilePlus2,
   Settings,
@@ -58,6 +58,7 @@ export const Route = createFileRoute("/")({
 function Dashboard() {
   const { settings, isConfigured } = useBusinessSettings();
   const { receipts, totalToday, totalAllTime, deleteReceipt } = useReceipts();
+  const router = useRouter();
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const greetingName = settings.companyName || "there";
@@ -228,7 +229,25 @@ function Dashboard() {
               {recentReceipts.map((r) => (
                 <div
                   key={r.id}
-                  className="group flex items-center gap-4 p-4 sm:p-5 hover:bg-muted/30 transition-colors"
+                  role="button"
+                  tabIndex={0}
+                  onClick={(e) => {
+                    if ((e.target as HTMLElement).closest('[role="alertdialog"], button')) return;
+                    router.navigate({
+                      to: "/receipts/$receiptId",
+                      params: { receiptId: r.receiptNumber },
+                    });
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      router.navigate({
+                        to: "/receipts/$receiptId",
+                        params: { receiptId: r.receiptNumber },
+                      });
+                    }
+                  }}
+                  className="group flex cursor-pointer items-center gap-4 p-4 sm:p-5 hover:bg-muted/30 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40"
                 >
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
                     <Receipt className="h-5 w-5" />

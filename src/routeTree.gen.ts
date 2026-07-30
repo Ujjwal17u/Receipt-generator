@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ReceiptsReceiptIdRouteImport } from './routes/receipts.$receiptId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +29,44 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReceiptsReceiptIdRoute = ReceiptsReceiptIdRouteImport.update({
+  id: '/receipts/$receiptId',
+  path: '/receipts/$receiptId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
   '/settings': typeof SettingsRoute
+  '/receipts/$receiptId': typeof ReceiptsReceiptIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
   '/settings': typeof SettingsRoute
+  '/receipts/$receiptId': typeof ReceiptsReceiptIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
   '/settings': typeof SettingsRoute
+  '/receipts/$receiptId': typeof ReceiptsReceiptIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/create' | '/settings'
+  fullPaths: '/' | '/create' | '/settings' | '/receipts/$receiptId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/create' | '/settings'
-  id: '__root__' | '/' | '/create' | '/settings'
+  to: '/' | '/create' | '/settings' | '/receipts/$receiptId'
+  id: '__root__' | '/' | '/create' | '/settings' | '/receipts/$receiptId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CreateRoute: typeof CreateRoute
   SettingsRoute: typeof SettingsRoute
+  ReceiptsReceiptIdRoute: typeof ReceiptsReceiptIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +92,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/receipts/$receiptId': {
+      id: '/receipts/$receiptId'
+      path: '/receipts/$receiptId'
+      fullPath: '/receipts/$receiptId'
+      preLoaderRoute: typeof ReceiptsReceiptIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CreateRoute: CreateRoute,
   SettingsRoute: SettingsRoute,
+  ReceiptsReceiptIdRoute: ReceiptsReceiptIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
